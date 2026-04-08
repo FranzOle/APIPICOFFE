@@ -4,22 +4,26 @@
 
 @section('content')
 <div class="p-6">
-    {{-- Header --}}
     <div class="flex items-center justify-between mb-6">
         <div class="flex items-center gap-3">
             <h1 class="text-2xl font-bold text-[#1C1917]">Menu Management</h1>
             <span class="text-base text-[#78716C]">({{ $products->total() }} Items)</span>
         </div>
-        <button onclick="menuModule.openAddModal()"
-                class="flex items-center gap-2 px-4 py-2.5 bg-primary hover:bg-[#EA580C] text-white rounded-2xl text-sm font-semibold transition-colors shadow-lg shadow-orange-200">
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                <circle cx="12" cy="12" r="10"/><path stroke-linecap="round" d="M12 8v8M8 12h8"/>
-            </svg>
-            Tambah Menu
-        </button>
+        <div class="flex gap-2">
+            <button onclick="categoryModule.openAddModal()"
+                    class="flex items-center gap-2 px-4 py-2.5 bg-stone-800 hover:bg-stone-900 text-white rounded-2xl text-sm font-semibold transition-colors">
+                Tambah Kategori
+            </button>
+            <button onclick="menuModule.openAddModal()"
+                    class="flex items-center gap-2 px-4 py-2.5 bg-primary hover:bg-[#EA580C] text-white rounded-2xl text-sm font-semibold transition-colors shadow-lg shadow-orange-200">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                    <circle cx="12" cy="12" r="10"/><path stroke-linecap="round" d="M12 8v8M8 12h8"/>
+                </svg>
+                Tambah Menu
+            </button>
+        </div>
     </div>
 
-    {{-- Filters --}}
     <div class="flex items-center gap-4 mb-6">
         <div class="flex-1 max-w-sm relative">
             <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#78716C]" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -29,20 +33,15 @@
                     class="w-full pl-9 pr-4 py-2.5 text-sm bg-white rounded-2xl border border-stone-200 focus:ring-2 focus:ring-primary/30 outline-none">
         </div>
 
-        <div class="flex gap-2 ml-auto">
-            @foreach(['all' => 'All', 'food' => 'Food', 'drinks' => 'Drinks', 'snacks' => 'Snacks', 'dessert' => 'Dessert'] as $key => $label)
-            <a href="{{ route('menu.index', ['category' => $key, 'search' => $search]) }}"
-                class="px-4 py-2 text-sm font-semibold rounded-lg transition-colors
-                        {{ ($category ?? 'all') === $key
-                            ? 'text-primary border-b-2 border-primary'
-                            : 'text-[#78716C] hover:text-[#1C1917]' }}">
-                {{ $label }}
-            </a>
-            @endforeach
+        <div class="flex items-center gap-2 ml-auto">
+            <div id="category-container" class="flex gap-2">
+            </div>
+            <div class="w-px h-6 bg-stone-300 mx-2"></div>
+            <div id="category-pagination" class="flex gap-1">
+            </div>
         </div>
     </div>
 
-    {{-- Table --}}
     <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
         <table class="w-full">
             <thead>
@@ -106,7 +105,6 @@
             </tbody>
         </table>
 
-        {{-- Pagination --}}
         <div class="px-6 py-4 border-t border-stone-100 flex items-center justify-between">
             <p class="text-sm text-[#78716C]">Showing {{ $products->firstItem() }} – {{ $products->lastItem() }} of {{ $products->total() }} items</p>
             <div class="flex items-center gap-1">
@@ -123,7 +121,7 @@
                 @for($i = 1; $i <= min($products->lastPage(), 5); $i++)
                 <a href="{{ $products->url($i) }}"
                     class="w-8 h-8 flex items-center justify-center rounded-full text-sm font-semibold transition-colors
-                            {{ $products->currentPage() === $i ? 'bg-primary text-white' : 'text-[#78716C] hover:bg-stone-100' }}">
+                            {{ $products->currentPage() == $i ? 'bg-primary text-white' : 'text-[#78716C] hover:bg-stone-100' }}">
                     {{ $i }}
                 </a>
                 @endfor
@@ -138,7 +136,40 @@
     </div>
 </div>
 
-{{-- Add Menu Modal --}}
+<div id="add-category-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="categoryModule.closeAddModal()"></div>
+    <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-md z-10">
+        <div class="p-6">
+            <div class="flex items-start justify-between mb-1">
+                <div>
+                    <h2 class="text-xl font-bold text-[#1C1917]">Tambah Kategori</h2>
+                </div>
+                <button onclick="categoryModule.closeAddModal()" class="text-stone-400 hover:text-[#1C1917] mt-1">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <form id="add-category-form" class="mt-5 space-y-4">
+                @csrf
+                <div>
+                    <label class="block text-sm font-semibold text-[#1C1917] mb-1.5">Nama Kategori</label>
+                    <input type="text" name="name" placeholder="Isi nama kategori" required
+                            class="w-full px-4 py-3 rounded-2xl border border-stone-200 text-sm focus:ring-2 focus:ring-primary/30 outline-none">
+                </div>
+                <div class="flex gap-3 pt-2">
+                    <button type="button" onclick="categoryModule.closeAddModal()"
+                            class="flex-1 py-3 text-sm font-semibold text-[#78716C] hover:text-[#1C1917] transition-colors">
+                        Batal
+                    </button>
+                    <button type="submit"
+                            class="flex-1 py-3 bg-stone-800 hover:bg-stone-900 text-white rounded-2xl text-sm font-semibold transition-colors shadow-lg shadow-stone-200">
+                        Tambah Kategori
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <div id="add-menu-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
     <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="menuModule.closeAddModal()"></div>
     <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg z-10">
@@ -165,11 +196,6 @@
                     <div>
                         <label class="block text-sm font-semibold text-[#1C1917] mb-1.5">Category</label>
                         <select name="category" class="w-full px-4 py-3 rounded-2xl border border-stone-200 text-sm focus:ring-2 focus:ring-primary/30 outline-none appearance-none bg-white">
-                            <option value="">Select category</option>
-                            <option value="food">Food</option>
-                            <option value="drinks">Drinks</option>
-                            <option value="snacks">Snacks</option>
-                            <option value="dessert">Dessert</option>
                         </select>
                     </div>
                     <div>
@@ -204,7 +230,7 @@
                                 </svg>
                             </div>
                             <p class="text-sm font-medium text-[#1C1917]">Click to upload or drag and drop</p>
-                            <p class="text-xs text-[#78716C]">JPG, PNG up to 5MB (1:1 aspect ratio recommended)</p>
+                            <p class="text-xs text-[#78716C]">JPG, PNG up to 5MB</p>
                         </div>
                         <input type="file" name="image" accept="image/*" class="hidden" onchange="menuModule.previewImage(this)">
                     </label>
@@ -225,7 +251,6 @@
     </div>
 </div>
 
-{{-- Edit Menu Modal --}}
 <div id="edit-menu-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
     <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="menuModule.closeEditModal()"></div>
     <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg z-10">
@@ -248,14 +273,16 @@
                 <div class="flex gap-4 mb-4">
                     <div class="flex flex-col items-center gap-2">
                         <img id="edit-product-image" src="" alt="Product" class="w-28 h-28 rounded-xl object-cover bg-stone-100">
-                        <button type="button" onclick="document.getElementById('edit-image-input').click()" class="text-xs font-semibold text-primary flex items-center gap-1">                            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                        <button type="button" onclick="document.getElementById('edit-image-input').click()" class="text-xs font-semibold text-primary flex items-center gap-1">
+                            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
                             Change Image
                         </button>
                         <button type="button" onclick="menuModule.removeEditImage()" class="text-xs font-semibold text-red-400 flex items-center gap-1">
                             <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                             Remove
                         </button>
-                        <input type="file" id="edit-image-input" name="image" accept="image/*" class="hidden" onchange="menuModule.previewEditImage(this)">                    </div>
+                        <input type="file" id="edit-image-input" name="image" accept="image/*" class="hidden" onchange="menuModule.previewEditImage(this)">
+                    </div>
                     <div class="flex-1 space-y-3">
                         <div>
                             <label class="block text-sm font-semibold text-[#1C1917] mb-1.5">Product Name</label>
@@ -266,10 +293,6 @@
                             <label class="block text-sm font-semibold text-[#1C1917] mb-1.5">Category</label>
                             <select id="edit-category" name="category"
                                     class="w-full px-4 py-2.5 rounded-2xl border border-stone-200 text-sm focus:ring-2 focus:ring-primary/30 outline-none bg-white">
-                                <option value="food">Food</option>
-                                <option value="drinks">Drinks</option>
-                                <option value="snacks">Snacks</option>
-                                <option value="dessert">Dessert</option>
                             </select>
                         </div>
                     </div>
@@ -312,7 +335,6 @@
     </div>
 </div>
 
-{{-- Delete Confirm Modal --}}
 <div id="delete-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
     <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" onclick="menuModule.closeDeleteModal()"></div>
     <div class="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm z-10 p-8 text-center">
@@ -341,6 +363,71 @@
 
 @push('scripts')
 <script>
+const categoryModule = {
+    currentPage: 1,
+    currentCategory: '{{ $category ?? "all" }}',
+    search: '{{ $search ?? "" }}',
+
+    async loadCategories(page = 1) {
+        const res = await fetch(`/categories/api?page=${page}`);
+        const data = await res.json();
+        this.currentPage = data.current_page;
+        this.renderCategories(data.data);
+        this.renderPagination(data);
+        this.populateSelects(data.data);
+    },
+
+    renderCategories(categories) {
+        const container = document.getElementById('category-container');
+        let html = `<a href="/menu?category=all&search=${this.search}" class="px-4 py-2 text-sm font-semibold rounded-lg transition-colors ${this.currentCategory == 'all' ? 'text-primary border-b-2 border-primary' : 'text-[#78716C] hover:text-[#1C1917]'}">All</a>`;
+
+        categories.forEach(cat => {
+            const isActive = this.currentCategory == cat.slug;
+            const activeClass = isActive ? 'text-primary border-b-2 border-primary' : 'text-[#78716C] hover:text-[#1C1917]';
+            html += `<a href="/menu?category=${cat.slug}&search=${this.search}" class="px-4 py-2 text-sm font-semibold rounded-lg transition-colors ${activeClass}">${cat.name}</a>`;
+        });
+
+        container.innerHTML = html;
+    },
+
+    renderPagination(data) {
+        const container = document.getElementById('category-pagination');
+        let html = '';
+        if (data.prev_page_url) {
+            html += `<button onclick="categoryModule.loadCategories(${data.current_page - 1})" class="p-1 rounded bg-stone-100 text-stone-600 hover:bg-stone-200"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" d="M15 19l-7-7 7-7"/></svg></button>`;
+        }
+        if (data.next_page_url) {
+            html += `<button onclick="categoryModule.loadCategories(${data.current_page + 1})" class="p-1 rounded bg-stone-100 text-stone-600 hover:bg-stone-200"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" d="M9 5l7 7-7 7"/></svg></button>`;
+        }
+        container.innerHTML = html;
+    },
+
+    populateSelects(categories) {
+        const addSelect = document.querySelector('select[name="category"]');
+        const editSelect = document.getElementById('edit-category');
+
+        let options = '<option value="">Select category</option>';
+        categories.forEach(cat => {
+            options += `<option value="${cat.slug}">${cat.name}</option>`;
+        });
+
+        const currentAddVal = addSelect.value;
+        const currentEditVal = editSelect.value;
+
+        addSelect.innerHTML = options;
+        editSelect.innerHTML = options;
+
+        if (currentAddVal) addSelect.value = currentAddVal;
+        if (currentEditVal) editSelect.value = currentEditVal;
+    },
+
+    openAddModal() { document.getElementById('add-category-modal').classList.remove('hidden'); },
+    closeAddModal() {
+        document.getElementById('add-category-modal').classList.add('hidden');
+        document.getElementById('add-category-form').reset();
+    }
+};
+
 const menuModule = {
     openAddModal() { document.getElementById('add-menu-modal').classList.remove('hidden'); },
     closeAddModal() { 
@@ -357,7 +444,7 @@ const menuModule = {
         document.getElementById('edit-menu-modal').classList.remove('hidden');
     },
     closeEditModal() { document.getElementById('edit-menu-modal').classList.add('hidden'); },
-        previewEditImage(input) {
+    previewEditImage(input) {
         if (input.files && input.files[0]) {
             const reader = new FileReader();
             reader.onload = (e) => {
@@ -392,7 +479,33 @@ const menuModule = {
     }
 };
 
-// Add form submit
+document.addEventListener('DOMContentLoaded', () => {
+    categoryModule.loadCategories();
+});
+
+document.getElementById('add-category-form')?.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const token = document.querySelector('meta[name="csrf-token"]').content;
+    const formData = new FormData(this);
+
+    const res = await fetch('/categories', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': token,
+            'Accept': 'application/json'
+        },
+        body: formData
+    });
+
+    const data = await res.json();
+    if (data.success) {
+        categoryModule.closeAddModal();
+        categoryModule.loadCategories(categoryModule.currentPage);
+    } else {
+        alert('Error: ' + (data.message || 'Gagal menambah kategori'));
+    }
+});
+
 document.getElementById('add-menu-form').addEventListener('submit', async function(e) {
     e.preventDefault();
     const token = document.querySelector('meta[name="csrf-token"]').content;
@@ -415,7 +528,6 @@ document.getElementById('add-menu-form').addEventListener('submit', async functi
     }
 });
 
-// Edit form submit
 document.getElementById('edit-menu-form').addEventListener('submit', async function(e) {
     e.preventDefault();
     const id = document.getElementById('edit-product-id').value;

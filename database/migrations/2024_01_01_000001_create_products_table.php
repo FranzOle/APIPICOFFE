@@ -11,8 +11,8 @@ return new class extends Migration
         Schema::create('products', function (Blueprint $table) {
             $table->id();
             $table->string('sku')->unique()->nullable();
+            $table->foreignId('category_id')->constrained('categories')->restrictOnDelete();
             $table->string('name');
-            $table->enum('category', ['food', 'drinks', 'snacks', 'dessert']);
             $table->unsignedBigInteger('price');
             $table->integer('stock')->default(0);
             $table->string('image')->nullable();
@@ -20,7 +20,7 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
 
-            $table->index('category');
+            $table->index('category_id');
             $table->index('is_available');
         });
     }

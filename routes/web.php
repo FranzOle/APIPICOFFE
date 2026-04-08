@@ -16,6 +16,11 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 // ── Authenticated ──────────────────────────────────────────────────────────────
 Route::middleware('auth')->group(function () {
 
+    Route::prefix('categories')->name('categories.')->middleware('role:cashier,admin,manager,supervisor')->group(function () {
+        Route::get('/api', [\App\Http\Controllers\CategoryController::class, 'getPaginated'])->name('api');
+        Route::post('/', [\App\Http\Controllers\CategoryController::class, 'store'])->name('store');
+    });
+
     // ── Dashboard POS ─────────────────────────────────────────────────────────
     Route::get('/', [PosController::class, 'index'])->name('pos.index');
 

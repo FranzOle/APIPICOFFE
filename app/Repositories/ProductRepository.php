@@ -13,8 +13,9 @@ class ProductRepository
     public function getAllAvailable(?string $category = null, ?string $search = null): Collection
     {
         return $this->model
+            ->with('category')
             ->available()
-            ->when($category && $category !== 'all', fn($q) => $q->byCategory($category))
+            ->when($category && $category != 'all', fn($q) => $q->byCategory($category))
             ->when($search, fn($q) => $q->where('name', 'like', "%{$search}%"))
             ->orderBy('name')
             ->get();
@@ -23,7 +24,8 @@ class ProductRepository
     public function getPaginated(?string $category = null, ?string $search = null, int $perPage = 8): LengthAwarePaginator
     {
         return $this->model
-            ->when($category && $category !== 'all', fn($q) => $q->byCategory($category))
+            ->with('category')
+            ->when($category && $category != 'all', fn($q) => $q->byCategory($category))
             ->when($search, fn($q) => $q->where('name', 'like', "%{$search}%"))
             ->orderBy('name')
             ->paginate($perPage);
